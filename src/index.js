@@ -1,14 +1,27 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
-import Application, {getDemoFiles} from '@webcodesk/react-app-framework-demo';
+import Application from '@webcodesk/react-app-framework';
 import './index.css';
 import globalSettings from './app/settings';
 import findColor from './utils/colorMap';
 
-const schema = require('./app/schema').default;
-const userComponents = require('./app/indices/userComponents').default;
-const userFunctions = require('./app/indices/userFunctions').default;
+let schema;
+let userComponents;
+let userFunctions;
+let packageJson = {};
+
+if (process.env.NODE_ENV !== 'production') {
+  schema = require('./app/schema').default;
+  userComponents = require('./app/indices/userComponents').default;
+  userFunctions = require('./app/indices/userFunctions').default;
+  packageJson = require('../package.json');
+
+} else {
+  schema = require('./app/schema-prod').default;
+  userComponents = require('./app/indices-prod/userComponents').default;
+  userFunctions = require('./app/indices-prod/userFunctions').default;
+}
 
 function initMuiThemeSettings(appSettings) {
   const muiTheme = {};
@@ -36,40 +49,17 @@ function initMuiThemeSettings(appSettings) {
   return muiTheme;
 }
 
-if (process.env.NODE_ENV !== 'production') {
-  const packageJson = require('../package.json');
-  const theme = createMuiTheme(initMuiThemeSettings(globalSettings));
-  ReactDOM.render(
-    <ThemeProvider theme={theme}>
-      <Application
-        name={packageJson.name}
-        version={packageJson.version}
-        schema={schema}
-        userComponents={userComponents}
-        userFunctions={userFunctions}
-      />
-    </ThemeProvider>,
-    document.getElementById('root')
-  );
+const theme = createMuiTheme(initMuiThemeSettings(globalSettings));
 
-} else {
-
-  function render() {
-    getDemoFiles({schema, settings: globalSettings}).then(({schema, settings}) => {
-      const theme = createMuiTheme(initMuiThemeSettings(settings));
-      ReactDOM.render(
-        <ThemeProvider theme={theme}>
-          <Application
-            schema={schema}
-            userComponents={userComponents}
-            userFunctions={userFunctions}
-          />
-        </ThemeProvider>,
-        document.getElementById('root')
-      );
-    });
-  }
-
-  render();
-}
-
+ReactDOM.render(
+  <ThemeProvider theme={theme}>
+    <Application
+      name={packageJson.name}
+      version={packageJson.version}
+      schema={schema}
+      userComponents={userComponents}
+      userFunctions={userFunctions}
+    />
+  </ThemeProvider>,
+  document.getElementById('root')
+);
